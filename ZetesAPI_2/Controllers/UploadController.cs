@@ -11,24 +11,13 @@ namespace ZetesAPI_2.Controllers
     public class UploadController : ControllerBase
     {
         private CSVValidator _csvValidator;
-        public UploadController( CSVValidator validator)
+        private ICsvResponsesDbRepository _csvResponsesDbRepository;
+        public UploadController( CSVValidator validator, CsvResponsesDBRepository repository)
         {
             _csvValidator = validator;
+            _csvResponsesDbRepository = repository;
         }
-        // GET: api/<UploadController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<UploadController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
+       
         // POST api/<UploadController>
         [HttpPost]
         public ResponseModel Upload(IFormFile file)
@@ -58,20 +47,48 @@ namespace ZetesAPI_2.Controllers
                 };
             }
 
-            responseModel = _csvValidator.ValidateCSV(file);
+            //responseModel = _csvValidator.ValidateCSV(file);
+
+            // check if the validation was successful
+            //if (responseModel.isSuccessful)
+            if(true)
+            {
+                // get the records and save to list
+                var records = _csvValidator.GetSuccessCsvResponses(file);
+                int savedRecordCount = 0;
+                // save to the database
+                foreach ( var record in records ) 
+                {
+                    bool saved = _csvResponsesDbRepository.AddRecord(record);
+                    savedRecordCount = saved ? savedRecordCount+1 : savedRecordCount+0;
+                }
+
+                if (records.Count == savedRecordCount)
+                {
+                    responseModel = new ResponseModel()
+                    {
+                        status = "Success",
+                        code = "200",
+                        message = "All records have been saved to the database",
+                        isSuccessful = true
+
+                    };
+                }
+                else
+                {
+                    responseModel = new ResponseModel()
+                    {
+                        status = "Failed partially",
+                        code = "200",
+                        message = "Not all the records were saved to the database",
+                        isSuccessful = true
+
+                    };
+                }
+           
+            }
             return responseModel;
         }
 
-        // PUT api/<UploadController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<UploadController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }

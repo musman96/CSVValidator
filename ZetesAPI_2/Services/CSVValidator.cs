@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualBasic.FileIO;
+using System.Reflection.PortableExecutable;
+using ZetesAPI_2.Data;
 using ZetesAPI_2.Models;
 
 namespace ZetesAPI_2.Services
@@ -264,6 +266,56 @@ namespace ZetesAPI_2.Services
                 default:
                     return false;
             }
+        }
+        public List<CsvResponses> GetSuccessCsvResponses(IFormFile file)
+        {
+            var responses = new List<CsvResponses>();
+            using (TextFieldParser parser = new TextFieldParser(file.OpenReadStream()))
+            {
+                parser.TextFieldType = FieldType.Delimited;
+                parser.SetDelimiters(",");
+                // Read the headers
+                string[] headers = parser.ReadFields();
+
+                while (!parser.EndOfData)
+                {
+                    string[] fields = parser.ReadFields();
+                    var record = new CsvResponses();
+                    // Validate empty values and field name length
+                    for (int i = 0; i < fields.Length; i++)
+                    {
+                        string fieldName = headers[i];
+                        string fieldValue = fields[i];
+
+                        if (fieldName == "Name")
+                        {
+                            record.Name = fieldValue;
+                        }
+                        if (fieldName == "Type")
+                        {
+                            record.Type = fieldValue;
+                        }
+                        if (fieldName == "Search")
+                        {
+                            record.Search = fieldValue;
+                        }
+                        if (fieldName == "Library filter")
+                        {
+                            record.LibraryFilter = fieldValue;
+                        }
+                        if (fieldName == "Visible")
+                        {
+                            record.Visible = fieldValue;
+                        }
+
+                        
+                    }
+                    //add record to the list
+                    responses.Add(record);
+
+                }
+            }
+            return responses;
         }
     }
 }

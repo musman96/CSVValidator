@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using ZetesAPI_2.Data;
 using ZetesAPI_2.Services;
 
 namespace ZetesAPI_2
@@ -8,6 +11,10 @@ namespace ZetesAPI_2
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // add database connection
+            var connectionString = builder.Configuration.GetConnectionString("azure");
+            builder.Services.AddDbContext<CsvvalidateContext>(x => x.UseSqlServer(connectionString));
+
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -16,7 +23,9 @@ namespace ZetesAPI_2
             builder.Services.AddSwaggerGen();
             // inject csv validator 
             builder.Services.AddTransient<ICSVValidator, CSVValidator>();
+            builder.Services.AddTransient<ICsvResponsesDbRepository, CsvResponsesDBRepository>();
             builder.Services.AddScoped<CSVValidator>();
+            builder.Services.AddScoped<CsvResponsesDBRepository>();
 
             var app = builder.Build();
 
